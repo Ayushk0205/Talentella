@@ -1,30 +1,25 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import Projects from './components/Projects';
-import Process from './components/Process';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
 import StaticBackground from './components/StaticBackground';
 import SmoothScroll from './components/SmoothScroll';
+import Home from './pages/Home';
+import ServicePage from './pages/ServicePage';
 
 function App() {
   return (
-    <SmoothScroll>
-      <div className="page-container">
-        <StaticBackground />
-        <Navbar />
-        <main>
-          <Hero />
-          <Services />
-          <Projects />
-          <Process />
-          <Contact />
-          <Footer />
-        </main>
-      </div>
-    </SmoothScroll>
+    <Router>
+      <SmoothScroll>
+        <div className="page-container">
+          <StaticBackground />
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/service/:id" element={<ServicePage />} />
+          </Routes>
+        </div>
+      </SmoothScroll>
+    </Router>
   );
 }
 

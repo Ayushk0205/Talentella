@@ -23,7 +23,7 @@ const steps = [
 const Process = () => {
   return (
     <div style={{ position: 'relative', minHeight: '200vh', zIndex: 30, marginBottom: '-100vh' }}>
-      <motion.section id="about" className="section-overlap" style={{ 
+      <motion.section id="process" className="section-overlap" style={{ 
         position: 'sticky',
         top: 0,
         backgroundColor: '#0c0c10', 

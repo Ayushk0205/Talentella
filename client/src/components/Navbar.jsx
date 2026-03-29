@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/talentella-logo.png';
 
 const Navbar = () => {
     const [isDarkTheme, setIsDarkTheme] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
+    const handleNavClick = (e, targetId) => {
+        if (location.pathname !== '/') {
+            e.preventDefault();
+            navigate('/#' + targetId);
+            // After navigation, the browser might not scroll automatically
+            setTimeout(() => {
+                const el = document.getElementById(targetId);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+        if (isOpen) setIsOpen(false);
+    };
+
+    // Keep the theme detection logic
     useEffect(() => {
         const handleScroll = () => {
             const sections = [
@@ -27,8 +44,6 @@ const Navbar = () => {
                 const sectionEl = document.getElementById(sections[i].id);
                 if (sectionEl) {
                     const rect = sectionEl.getBoundingClientRect();
-                    // If this section has reached the top of the viewport (or slightly below)
-                    // it is the currently active overlapping section.
                     if (rect.top <= 100) {
                         overLight = sections[i].isLight;
                         break;
@@ -40,11 +55,10 @@ const Navbar = () => {
         };
 
         window.addEventListener('scroll', handleScroll);
-        // Call once on mount to set initial state
         handleScroll();
         
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [location.pathname]);
 
     const textColor = isDarkTheme ? '#000000' : '#ffffff';
     const borderColor = isDarkTheme ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.1)';
@@ -69,26 +83,28 @@ const Navbar = () => {
             }}
         >
             {/* Logo */}
-            <motion.div 
-                style={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    pointerEvents: 'auto'
-                }}
-            >
-                <img 
-                  src={logo} 
-                  alt="Talent Ella Logo" 
-                  style={{ 
-                    height: '45px',
-                    width: 'auto',
-                    mixBlendMode: isDarkTheme ? 'multiply' : 'screen',
-                    filter: isDarkTheme ? 'contrast(1.2)' : 'none',
-                    borderRadius: '6px'
-                  }} 
-                />
-            </motion.div>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+                <motion.div 
+                    style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        pointerEvents: 'auto'
+                    }}
+                >
+                    <img 
+                      src={logo} 
+                      alt="Talent Ella Logo" 
+                      style={{ 
+                        height: '45px',
+                        width: 'auto',
+                        mixBlendMode: isDarkTheme ? 'multiply' : 'screen',
+                        filter: isDarkTheme ? 'contrast(1.2)' : 'none',
+                        borderRadius: '6px'
+                      }} 
+                    />
+                </motion.div>
+            </Link>
 
             {/* Navigation Card */}
             <motion.div 
@@ -113,6 +129,7 @@ const Navbar = () => {
                     <motion.a 
                         key={item} 
                         href={`#${item.toLowerCase()}`}
+                        onClick={(e) => handleNavClick(e, item.toLowerCase())}
                         onHoverStart={() => setHoveredIndex(index)}
                         onHoverEnd={() => setHoveredIndex(null)}
                         style={{ 
@@ -139,7 +156,7 @@ const Navbar = () => {
                                     left: 0,
                                     right: 0,
                                     height: '2px',
-                                    backgroundColor: 'var(--accent)',
+                                    backgroundColor: '#8400ff',
                                     borderRadius: '2px'
                                 }}
                             />
@@ -150,28 +167,28 @@ const Navbar = () => {
 
             {/* Action Button */}
             <div className="hidden-mobile" style={{ pointerEvents: 'auto' }}>
-                <motion.a 
-                  href="#contact"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ 
-                      padding: '0.8rem 2rem', 
-                      fontSize: '0.8rem', 
-                      fontWeight: 800,
-                      borderRadius: '100px',
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      letterSpacing: '0.05em',
-                      backgroundColor: isDarkTheme ? '#0a0a0c' : '#ffffff',
-                      color: isDarkTheme ? '#ffffff' : '#0a0a0c',
-                      boxShadow: isDarkTheme ? '0 10px 30px rgba(0,0,0,0.15)' : 'none',
-                      transition: 'background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease'
-                  }}
-                >
-                    GET IN TOUCH
-                </motion.a>
+                <Link to="/#contact" onClick={(e) => handleNavClick(e, 'contact')} style={{ textDecoration: 'none' }}>
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{ 
+                          padding: '0.8rem 2rem', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 800,
+                          borderRadius: '100px',
+                          display: 'inline-flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          letterSpacing: '0.05em',
+                          backgroundColor: isDarkTheme ? '#0a0a0c' : '#ffffff',
+                          color: isDarkTheme ? '#ffffff' : '#0a0a0c',
+                          boxShadow: isDarkTheme ? '0 10px 30px rgba(0,0,0,0.15)' : 'none',
+                          transition: 'background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease'
+                      }}
+                    >
+                        GET IN TOUCH
+                    </motion.div>
+                </Link>
             </div>
 
             {/* Mobile Hamburger Icon */}
@@ -211,7 +228,7 @@ const Navbar = () => {
                                 <a 
                                     key={item} 
                                     href={`#${item.toLowerCase()}`}
-                                    onClick={toggleMenu}
+                                    onClick={(e) => handleNavClick(e, item.toLowerCase())}
                                     style={{ 
                                         fontSize: '2.5rem', 
                                         fontWeight: 800, 
@@ -225,7 +242,7 @@ const Navbar = () => {
                             ))}
                             <a 
                                 href="#contact"
-                                onClick={toggleMenu}
+                                onClick={(e) => handleNavClick(e, 'contact')}
                                 className="btn-primary"
                                 style={{ marginTop: '2rem', fontSize: '1.2rem', padding: '15px 40px', justifyContent: 'center' }}
                             >
