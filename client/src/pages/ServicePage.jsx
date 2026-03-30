@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Code, Share2, Palette, Settings, Zap, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, Check, Code, Share2, Palette, Settings, Zap, ArrowUpRight, Shield, Database, LifeBuoy, Rocket } from 'lucide-react';
 import { servicesData } from '../data/servicesData';
 import Footer from '../components/Footer';
 import ReviewsSection from '../components/ReviewsSection';
@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 
-const MotionCheck = motion(Check);
+const MotionCheck = motion.create(Check);
 
 const iconMap = {
   Code,
@@ -32,19 +32,20 @@ const PortfolioCard = ({ work, index, total, scrollProgress, exitPoint }) => {
   const nextEnd = Math.min(1, nextStart + 0.1);
   const stackScale = useTransform(scrollProgress, [nextStart, nextEnd], [1, 0.96]);
   const stackY = useTransform(scrollProgress, [nextStart, nextEnd], [0, -20]);
+  const combinedScale = useTransform(() => stackScale.get() * scale.get());
 
   return (
     <motion.div 
       style={{ 
         position: 'absolute', 
-        top: '15vh', // Slightly higher for better visibility
+        top: '8vh', // Perfectly balanced with the heading area
         left: '50%',
         x: '-50%',
         width: '90%', 
         maxWidth: '1100px', 
         zIndex: 10 + index,
         y,
-        scale: useTransform(() => stackScale.get() * scale.get()),
+        scale: combinedScale,
         translateY: stackY,
         willChange: 'transform'
       }}
@@ -361,7 +362,7 @@ const ServicePage = () => {
                   margin: 0
                 }}
               >
-                {"PROJECTS".split("").map((letter, i) => (
+                {(service.id === 'social-media-management' ? "OUR WORKS" : "PROJECTS").split("").map((letter, i) => (
                   <motion.span
                     key={i}
                     initial={{ opacity: 0, y: -30 }}
@@ -415,18 +416,27 @@ const ServicePage = () => {
               )}
             </div>
           </section>
-      </div>
+        </div>
 
-      {/* 3. Pricing Section */}
+        {/* Optional Maintenance Section (Only for Web Dev) */}
+        {service.id === 'website-development' && service.maintenance && (
+          <MaintenanceSection data={service.maintenance} />
+        )}
+
+      {/* 3. Pricing Section (Overlaps Maintenance for Web Dev or Projects otherwise) */}
       <div style={{ position: 'relative', minHeight: '250vh', zIndex: 30, marginTop: '-100vh' }}>
         <section className="section-overlap" style={{ 
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
           backgroundColor: '#f8f9fc', 
           color: '#0a0a0c', 
-          paddingTop: '90px', 
-          paddingBottom: '70px',
+          paddingTop: '100px', 
+          paddingBottom: '80px',
           borderTopLeftRadius: '60px',
           borderTopRightRadius: '60px',
-          boxShadow: '0 -20px 60px rgba(0,0,0,0.05)'
+          boxShadow: '0 -20px 80px rgba(0,0,0,0.08)',
+          overflow: 'hidden'
         }}>
           <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', padding: '0 5%' }}>
              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: '0', color: '#0a0a0c', lineHeight: 1.2 }}>
@@ -496,6 +506,89 @@ const ServicePage = () => {
         <Footer />
       </div>
 
+    </div>
+  );
+};
+
+const MaintenanceSection = ({ data }) => {
+  const iconMap = { Shield, Database, Zap, LifeBuoy, Rocket };
+
+  return (
+    <div style={{ position: 'relative', minHeight: '200vh', zIndex: 25, marginTop: '-100vh' }}>
+      <section className="section-overlap" style={{ 
+        position: 'sticky',
+        top: 0,
+        height: '100vh',
+        backgroundColor: '#050508', 
+        color: 'white', 
+        paddingTop: '180px', 
+        paddingBottom: '120px',
+        borderTopLeftRadius: '60px',
+        borderTopRightRadius: '60px',
+        boxShadow: '0 -20px 80px rgba(0,0,0,0.5)',
+        overflow: 'hidden'
+      }}>
+        {/* Glow Effects */}
+        <div style={{ position: 'absolute', top: '-10%', left: '10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(132, 0, 255, 0.1) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+        
+        <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', padding: '0 5%', position: 'relative', zIndex: 2 }}>
+          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '0.5rem' }}
+            >
+              {data.title}
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1.1rem', maxWidth: '700px', margin: '0 auto' }}
+            >
+              Building the site is just the beginning. We ensure your digital assets remain fast, secure, and ahead of the curve.
+            </motion.p>
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            justifyContent: 'center', 
+            gap: '1.5rem',
+            maxWidth: '1200px',
+            margin: '0 auto'
+          }}>
+            {data.features.map((item, idx) => {
+              const Icon = iconMap[item.icon] || Shield;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  whileHover={{ y: -10, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  style={{ 
+                    padding: '1.8rem 2rem', 
+                    borderRadius: '28px', 
+                    backgroundColor: 'rgba(255,255,255,0.02)', 
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    transition: 'all 0.3s ease',
+                    flex: '1 1 300px',
+                    maxWidth: '340px'
+                  }}
+                >
+                  <div style={{ width: '50px', height: '50px', borderRadius: '14px', backgroundColor: 'rgba(132, 0, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8400ff', marginBottom: '1.5rem' }}>
+                    <Icon size={24} />
+                  </div>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>{item.title}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.95rem', lineHeight: '1.6' }}>{item.desc}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

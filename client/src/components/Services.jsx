@@ -150,8 +150,9 @@ const Services = () => {
         <div className="auto-grid" style={{ 
           width: '100%', 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          gap: '2rem' 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 400px))', 
+          gap: '2rem',
+          justifyContent: 'center'
         }}>
           {servicesData.map((s, i) => (
             <ServiceCard key={s.id} s={s} index={i} />

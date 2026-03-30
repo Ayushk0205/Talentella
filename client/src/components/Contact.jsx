@@ -52,27 +52,31 @@ const Contact = () => {
                 <h2 style={{ 
                   fontSize: 'clamp(3.5rem, 8vw, 6rem)', 
                   fontWeight: 900, 
-                  lineHeight: 1, 
+                  lineHeight: 0.9, 
                   textTransform: 'uppercase', 
                   letterSpacing: '-0.04em',
                   color: '#0a0a0c',
                   margin: 0
                 }}>
-                  {"LET'S GET IN TOUCH".split("").map((letter, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ opacity: 0, y: 40 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: false }}
-                      transition={{ 
-                        duration: 0.8, 
-                        delay: i * 0.04,
-                        ease: [0.16, 1, 0.3, 1] 
-                      }}
-                      style={{ display: 'inline-block', whiteSpace: letter === ' ' ? 'pre' : 'normal' }}
-                    >
-                      {letter}
-                    </motion.span>
+                  {["LET'S", "GET IN", "TOUCH"].map((line, lineIdx) => (
+                    <div key={lineIdx} style={{ display: 'block', overflow: 'hidden' }}>
+                      {line.split("").map((letter, i) => (
+                        <motion.span
+                          key={i}
+                          initial={{ opacity: 0, y: 80 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: false }}
+                          transition={{ 
+                            duration: 0.8, 
+                            delay: (lineIdx * 5 + i) * 0.04,
+                            ease: [0.16, 1, 0.3, 1] 
+                          }}
+                          style={{ display: 'inline-block', whiteSpace: letter === ' ' ? 'pre' : 'normal' }}
+                        >
+                          {letter}
+                        </motion.span>
+                      ))}
+                    </div>
                   ))}
                 </h2>
                 <a 

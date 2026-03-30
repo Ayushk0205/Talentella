@@ -50,15 +50,15 @@ const ReviewCard = ({ review }) => (
   <motion.div
     whileHover={{ scale: 1.02, borderColor: 'rgba(132, 0, 255, 0.4)', boxShadow: '0 15px 35px rgba(132, 0, 255, 0.1)' }}
     style={{
-      minWidth: '240px',
-      padding: '0.85rem',
+      minWidth: '320px',
+      padding: '1.25rem',
       backgroundColor: '#ffffff',
       border: '1px solid rgba(132, 0, 255, 0.08)',
-      borderRadius: '16px',
-      margin: '0 0.4rem',
+      borderRadius: '20px',
+      margin: '0 0.5rem',
       display: 'flex',
       flexDirection: 'column',
-      gap: '0.4rem',
+      gap: '0.6rem',
       cursor: 'pointer',
       transition: 'all 0.4s ease',
       boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
@@ -77,11 +77,11 @@ const ReviewCard = ({ review }) => (
         }} 
       />
       <div>
-        <h4 style={{ color: '#0a0a0c', margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>{review.name}</h4>
-        <p style={{ color: '#8400ff', margin: 0, fontSize: '0.55rem', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600 }}>{review.role}</p>
+        <h4 style={{ color: '#0a0a0c', margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>{review.name}</h4>
+        <p style={{ color: '#8400ff', margin: 0, fontSize: '0.65rem', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600 }}>{review.role}</p>
       </div>
     </div>
-    <p style={{ color: '#444444', fontSize: '0.7rem', lineHeight: '1.3', margin: 0, fontWeight: 500 }}>
+    <p style={{ color: '#444444', fontSize: '0.85rem', lineHeight: '1.4', margin: 0, fontWeight: 500 }}>
       "{review.text}"
     </p>
   </motion.div>
@@ -107,8 +107,7 @@ const ReviewsSection = () => {
         position: 'relative',
         zIndex: 50,
         borderRadius: '80px 80px 0 0',
-        marginTop: '-100vh', 
-        minHeight: '220vh', 
+        minHeight: '200vh', 
         boxShadow: '0 -60px 150px rgba(132, 0, 255, 0.08), 0 -20px 40px rgba(0,0,0,0.03)',
         backgroundImage: `
           radial-gradient(circle at 10% 10%, rgba(132, 0, 255, 0.04) 0%, transparent 40%),
@@ -123,10 +122,10 @@ const ReviewsSection = () => {
         height: '100vh', 
         display: 'flex', 
         flexDirection: 'column', 
-        paddingTop: '110px', 
+        paddingTop: '80px', 
         overflow: 'hidden' 
       }}>
-        <div style={{ padding: '0 8%', marginBottom: '1.5rem' }}>
+        <div style={{ padding: '0 8%', marginBottom: '2.5rem' }}>
           <motion.p 
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -148,7 +147,7 @@ const ReviewsSection = () => {
           </motion.h2>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1vh 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', padding: '1vh 0' }}>
           <motion.div style={{ display: 'flex', x: row1X }}>
             {[...reviewsData, ...reviewsData, ...reviewsData, ...reviewsData, ...reviewsData].map((review, i) => (
               <ReviewCard key={`row1-${i}`} review={review} />

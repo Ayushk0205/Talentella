@@ -1,19 +1,52 @@
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { X, Play, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-const SocialMediaPortfolio = ({ portfolio }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [selectedId, setSelectedId] = useState(null);
-  const containerRef = useRef(null);
+const PortfolioCard = ({ 
+  item, 
+  index, 
+  activeIndex, 
+  portfolioLength, 
+  setSelectedId, 
+  setActiveIndex, 
+  selectedId 
+}) => {
+  const videoRef = useRef(null);
+  // Calculate relative position to active index
+  let diff = index - activeIndex;
+  
+  // Infinite loop correction
+  if (diff > portfolioLength / 2) diff -= portfolioLength;
+  if (diff < -portfolioLength / 2) diff += portfolioLength;
 
-  // Mouse Tilt Logic
+  const isActive = diff === 0;
+  const isNear = Math.abs(diff) === 1;
+  const isVisible = Math.abs(diff) <= 2; // Show 5 cards at most
+
+  // Local Mouse Tilt Logic for Universal Interaction
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
+  
+  // Base transforms from cylinder layout
+  const rotateY_base = diff * -35;
+  const baseRotateY_motion = useSpring(rotateY_base, { stiffness: 260, damping: 30 });
+  
+  // Update base motion value when index changes
+  if (baseRotateY_motion.get() !== rotateY_base) {
+    baseRotateY_motion.set(rotateY_base);
+  }
+
+  const xOffset = diff * 340;
+  const zOffset = isActive ? 150 : isNear ? 0 : -150;
+  const scale = isActive ? 1.1 : isNear ? 0.75 : 0.55;
+  const opacity = isActive ? 1 : isNear ? 0.6 : 0.2;
+
+  // Interactive tilt
   const tiltX = useTransform(mouseYSpring, [-0.5, 0.5], [7, -7]);
   const tiltY = useTransform(mouseXSpring, [-0.5, 0.5], [-7, 7]);
+  const combinedRotateY = useTransform([baseRotateY_motion, tiltY], ([base, tilt]) => base + tilt);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -23,10 +56,97 @@ const SocialMediaPortfolio = ({ portfolio }) => {
     y.set(yPct);
   };
 
+  const handleMouseEnter = () => {
+    if (videoRef.current) videoRef.current.play();
+  };
+
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
+    if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+    }
   };
+
+  if (!isVisible && !isActive) return null;
+
+  return (
+    <motion.div
+      layoutId={item.id}
+      onClick={() => isActive ? setSelectedId(item.id) : setActiveIndex(index)}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      animate={{ 
+        x: xOffset,
+        z: zOffset,
+        // rotateY is handled in style for mixing with tilt
+        scale: scale,
+        opacity: opacity,
+      }}
+      transition={{ 
+        type: 'spring',
+        stiffness: 260,
+        damping: 30,
+        mass: 1
+      }}
+      style={{ 
+        position: 'absolute',
+        width: '380px',
+        aspectRatio: '1/1.2',
+        borderRadius: '32px',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        backgroundColor: '#111',
+        border: isActive ? '2px solid rgba(132, 0, 255, 0.5)' : '1px solid rgba(255,255,255,0.1)',
+        boxShadow: isActive ? '0 30px 60px rgba(132, 0, 255, 0.2)' : '0 10px 30px rgba(0,0,0,0.5)',
+        transformStyle: 'preserve-3d',
+        zIndex: 10 - Math.abs(diff),
+        filter: selectedId && selectedId !== item.id ? 'blur(10px) brightness(0.3)' : 'none',
+        rotateX: tiltX,
+        rotateY: combinedRotateY,
+      }}
+    >
+      {item.type === 'video' ? (
+        <video 
+          ref={videoRef}
+          src={item.content}
+          poster={item.thumbnail}
+          muted
+          loop
+          playsInline
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        <img src={item.content} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      )}
+
+      {/* Rolling Overlay */}
+      <motion.div 
+        animate={{ opacity: isActive ? 1 : 0 }}
+        style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          padding: '1.5rem',
+          pointerEvents: 'none'
+        }}
+      >
+        <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>{item.title}</h2>
+        <p style={{ color: 'rgba(255,255,255,0.6)', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>{item.description}</p>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const SocialMediaPortfolio = ({ portfolio }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState(null);
+  const containerRef = useRef(null);
 
   if (!portfolio || portfolio.length === 0) return null;
 
@@ -77,102 +197,21 @@ const SocialMediaPortfolio = ({ portfolio }) => {
         perspective: '1200px',
         transformStyle: 'preserve-3d'
       }}>
-        {portfolio.map((item, index) => {
-          // Calculate relative position to active index
-          // This handles the wrapping logic for 3D rolling
-          let diff = index - activeIndex;
-          
-          // Infinite loop correction
-          if (diff > portfolio.length / 2) diff -= portfolio.length;
-          if (diff < -portfolio.length / 2) diff += portfolio.length;
-
-          const isActive = diff === 0;
-          const isNear = Math.abs(diff) === 1;
-          const isVisible = Math.abs(diff) <= 2; // Show 5 cards at most
-
-          if (!isVisible && !isActive) return null;
-
-          // 3D Transforms based on diff
-          const xOffset = diff * 340; // Horizontal spacing
-          const zOffset = isActive ? 150 : isNear ? 0 : -150; // Depth
-          const rotateY = diff * -35; // Tilt effect (Coverflow)
-          const scale = isActive ? 1.1 : isNear ? 0.75 : 0.55;
-          const opacity = isActive ? 1 : isNear ? 0.6 : 0.2;
-
-          return (
-            <motion.div
-              key={item.id}
-              layoutId={item.id}
-              onClick={() => isActive ? setSelectedId(item.id) : setActiveIndex(index)}
-              onMouseMove={isActive ? handleMouseMove : undefined}
-              onMouseLeave={isActive ? handleMouseLeave : undefined}
-              animate={{ 
-                x: xOffset,
-                z: zOffset,
-                rotateY: rotateY,
-                scale: scale,
-                opacity: opacity,
-              }}
-              transition={{ 
-                type: 'spring',
-                stiffness: 260,
-                damping: 30,
-                mass: 1
-              }}
-              style={{ 
-                position: 'absolute',
-                width: '380px',
-                aspectRatio: '1/1.2',
-                borderRadius: '32px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                backgroundColor: '#111',
-                border: isActive ? '2px solid rgba(132, 0, 255, 0.5)' : '1px solid rgba(255,255,255,0.1)',
-                boxShadow: isActive ? '0 30px 60px rgba(132, 0, 255, 0.2)' : '0 10px 30px rgba(0,0,0,0.5)',
-                transformStyle: 'preserve-3d',
-                zIndex: 10 - Math.abs(diff),
-                filter: selectedId && selectedId !== item.id ? 'blur(10px) brightness(0.3)' : 'none',
-                rotateX: isActive ? tiltX : 0,
-                rotateY: isActive ? tiltY : undefined, // Let tiltY take over if active
-              }}
-            >
-              {item.type === 'video' ? (
-                <video 
-                  src={item.content}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <img src={item.content} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-
-              {/* Rolling Overlay */}
-              <motion.div 
-                animate={{ opacity: isActive ? 1 : 0 }}
-                style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '1.5rem',
-                  pointerEvents: 'none'
-                }}
-              >
-                <h3 style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>{item.title}</h3>
-                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', margin: '8px 0 0' }}>{item.description}</p>
-              </motion.div>
-
-            </motion.div>
-          );
-        })}
+        {portfolio.map((item, index) => (
+          <PortfolioCard 
+            key={item.id}
+            item={item}
+            index={index}
+            activeIndex={activeIndex}
+            portfolioLength={portfolio.length}
+            setSelectedId={setSelectedId}
+            setActiveIndex={setActiveIndex}
+            selectedId={selectedId}
+          />
+        ))}
       </div>
 
-      {/* Side Navigation Arrows */}
+      {/* Navigation Buttons */}
       <motion.button
         whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
         whileTap={{ scale: 0.9 }}
@@ -260,63 +299,62 @@ const SocialMediaPortfolio = ({ portfolio }) => {
                   aspectRatio: '9/16',
                   borderRadius: '32px',
                   overflow: 'hidden',
-                  backgroundColor: '#0c0c0e',
-                  boxShadow: '0 30px 60px rgba(132, 0, 255, 0.4)',
+                  backgroundColor: '#111',
+                  pointerEvents: 'auto',
                   position: 'relative',
-                  pointerEvents: 'auto'
+                  boxShadow: '0 40px 100px rgba(0,0,0,1)'
                 }}
               >
                 {selectedItem.type === 'video' ? (
                   <video 
-                    src={selectedItem.content}
-                    autoPlay
-                    controls
-                    loop
-                    playsInline
+                    src={selectedItem.content} 
+                    autoPlay 
+                    muted 
+                    loop 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 ) : (
                   <img src={selectedItem.content} alt={selectedItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 )}
-
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={(e) => { e.stopPropagation(); setSelectedId(null); }}
-                  style={{ 
-                    position: 'absolute', 
-                    top: '1.5rem', 
-                    right: '1.5rem', 
-                    width: '40px', 
-                    height: '40px', 
+                
+                {/* Modal Close Button */}
+                <button 
+                  onClick={() => setSelectedId(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '1.5rem',
+                    right: '1.5rem',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: '50%',
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(10px)'
                   }}
                 >
                   <X size={20} />
-                </motion.button>
+                </button>
 
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
+                {/* Modal Content Info */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  style={{ 
-                    position: 'absolute', 
-                    bottom: 0, 
-                    left: 0, 
-                    right: 0, 
-                    padding: '2.5rem 2rem 2rem',
-                    background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 50%, transparent 100%)'
+                  transition={{ delay: 0.3 }}
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '2.5rem',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%)'
                   }}
                 >
-                  <h3 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>{selectedItem.title}</h3>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.02em' }}>{selectedItem.title}</h3>
                   <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem', marginTop: '0.75rem', lineHeight: 1.5 }}>{selectedItem.description}</p>
                 </motion.div>
               </motion.div>
